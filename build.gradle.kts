@@ -1,148 +1,96 @@
-import com.diffplug.gradle.spotless.SpotlessExtension
-import com.github.jengelman.gradle.plugins.shadow.tasks.ConfigureShadowRelocation
-import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+import org.gradle.api.tasks.testing.logging.TestLogEvent.*
+import org.jetbrains.kotlin.gradle.plugin.KotlinPluginWrapper
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import org.unbrokendome.gradle.plugins.testsets.dsl.TestSetContainer
 
 plugins {
-    `kotlin-dsl`
+    kotlin("jvm") version "1.5.31" apply false
+    kotlin("kapt") version "1.5.31" apply false
 
-    id("com.diffplug.spotless") version "6.11.0"
-    id("com.github.johnrengelman.shadow") version "7.1.2"
-    id("com.gradle.plugin-publish") version "1.1.0"
-    id("org.unbroken-dome.test-sets") version "4.0.0"
+    id("com.diffplug.spotless") version "6.11.0" apply false
+    id("com.github.johnrengelman.shadow") version "7.1.2" apply false
+    id("com.gradle.plugin-publish") version "1.1.0" apply false
+    id("org.unbroken-dome.test-sets") version "4.0.0" apply false
 }
 
-group = "io.github.meiblorn"
-
-description =
-    """Gradle plugin for requiring Docker containers 
-    to be up and running before executing attached tasks
-    """.trimIndent()
-
-repositories {
-    mavenCentral()
-    maven { url = uri("https://plugins.gradle.org/m2") }
-}
-
-configurations {
-    implementation { extendsFrom(shadow.get()) }
-}
-
-afterEvaluate {
-    with(configurations.shadow.get()) {
-        dependencies.remove(project.dependencies.gradleApi())
+allprojects {
+    repositories {
+        mavenCentral()
+        maven { url = uri("https://plugins.gradle.org/m2") }
     }
-}
 
-dependencies {
-    shadow("com.bmuschko:gradle-docker-plugin:9.0.1")
-}
-
-configure<SourceSetContainer> {
-    main {
-        java {
-            // https://arturdryomov.dev/posts/kotlin-code-organization/
-            srcDirs("src/main/kotlinExtensions")
+    configurations {
+        all {
+            resolutionStrategy {
+                eachDependency {
+                    if (requested.group == "org.jetbrains.kotlin") {
+                        useVersion("1.5.31")
+                    }
+                }
+            }
         }
     }
-    test {
-        java {
-            // https://arturdryomov.dev/posts/kotlin-code-organization/
-            srcDirs("src/test/kotlinExtensions")
+
+    afterEvaluate {
+        if (plugins.hasPlugin(JavaPlugin::class)) {
+            apply<JacocoPlugin>()
+
+            configure<JavaPluginExtension> {
+                toolchain {
+                    languageVersion.set(JavaLanguageVersion.of(11))
+                }
+            }
+
+            dependencies {
+                val testImplementation: Configuration by configurations.getting
+
+                testImplementation("io.kotest:kotest-assertions-core:5.5.4")
+                testImplementation("io.kotest:kotest-property:5.5.4")
+                testImplementation("io.kotest:kotest-runner-junit5:5.5.4")
+            }
+
+            tasks.withType<Test> {
+                useJUnitPlatform()
+                testLogging {
+                    events(STARTED, PASSED, FAILED)
+                    showExceptions = true
+                    showStackTraces = true
+                    showCauses = true
+                    exceptionFormat = FULL
+                }
+            }
+
+            tasks.withType<JacocoReport> {
+                reports {
+                    with(xml) {
+                        required.set(true)
+                    }
+                    with(html) {
+                        required.set(false)
+                    }
+                }
+                setDependsOn(tasks.withType<Test>())
+            }
         }
-    }
-}
 
-configure<JavaPluginExtension> {
-    toolchain {
-        languageVersion.set(JavaLanguageVersion.of(8))
-    }
-}
+        if (plugins.hasPlugin(KotlinPluginWrapper::class)) {
+            tasks.withType<KotlinCompile> {
+                kotlinOptions {
+                    jvmTarget = "11"
+                    freeCompilerArgs = listOf("-Xjsr305=strict")
+                }
+            }
 
-tasks.withType<KotlinCompile> {
-    kotlinOptions {
-        jvmTarget = "1.8"
-    }
-}
-
-tasks.withType<Test> {
-    useJUnitPlatform()
-}
-
-configure<TestSetContainer> {
-    val unitTest by getting
-    val integrationTest by creating {
-        extendsFrom(unitTest)
-    }
-}
-
-val shadowJar by tasks.getting(ShadowJar::class) {
-    archiveClassifier.set("")
-    configurations = listOf(project.configurations.shadow.get())
-    exclude(
-        "META-INF/*.DSA",
-        "META-INF/*.RSA",
-        "META-INF/*.SF",
-        "META-INF/CHANGELOG*",
-        "META-INF/DEPENDENCIES*",
-        "META-INF/INDEX.LIST",
-        "META-INF/NOTICE*",
-        "META-INF/README*",
-        "migrations/*",
-        "module-info.class",
-
-        // Nothing personal, just don't want to keep it in the jar
-        // while it's not used because of shadow minification
-        "META-INF/gradle-plugins/com.bmuschko.*",
-    )
-    mergeServiceFiles()
-    minimize()
-}
-
-val jar by tasks.getting(Jar::class) {
-    dependsOn(shadowJar)
-}
-
-val relocateShadowJar by tasks.creating(ConfigureShadowRelocation::class) {
-    target = shadowJar
-    prefix = "io.github.meiblorn.requiredocker.shaded"
-}
-
-shadowJar.dependsOn(relocateShadowJar)
-
-gradlePlugin {
-    val requireDocker by plugins.creating {
-        id = "io.github.meiblorn.require-docker"
-        implementationClass = "io.github.meiblorn.requiredocker.RequireDockerPlugin"
-        version = project.version
-        displayName = "Require Docker Plugin"
-        description =
-            """Gradle plugin to require Docker to be up 
-                and running before executing attached tasks
-            """.trimIndent()
-    }
-}
-
-pluginBundle {
-    website = "https://github.com/meiblorn/gradle-require-docker-plugin"
-    vcsUrl = "https://github.com/meiblorn/gradle-require-docker-plugin"
-    tags = listOf("docker", "require", "gradle", "plugin")
-}
-
-configure<SpotlessExtension> {
-    kotlin {
-        target("src/main/kotlin/**/*.kt")
-        target("src/main/kotlinExtensions/**/*.kt")
-
-        ktfmt().dropboxStyle().configure {
-            it.setMaxWidth(120)
-            it.setBlockIndent(4)
-            it.setContinuationIndent(4)
-            it.setRemoveUnusedImport(true)
+            configure<SourceSetContainer> {
+                afterEvaluate {
+                    all {
+                        java {
+                            // https://arturdryomov.dev/posts/kotlin-code-organization/
+                            srcDirs("src/${this@all.name}/kotlinExtensions")
+                        }
+                    }
+                }
+            }
         }
-    }
-    kotlinGradle {
-        ktlint()
     }
 }

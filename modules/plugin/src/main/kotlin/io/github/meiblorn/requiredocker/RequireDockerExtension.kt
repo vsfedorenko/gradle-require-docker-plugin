@@ -4,6 +4,7 @@ import com.bmuschko.gradle.docker.DockerExtension
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
+import org.gradle.api.provider.Provider
 import org.gradle.kotlin.dsl.domainObjectContainer
 import org.gradle.kotlin.dsl.newInstance
 import org.gradle.kotlin.dsl.property
@@ -13,10 +14,10 @@ open class RequireDockerExtension
 @Inject constructor(
     private val objectFactory: ObjectFactory
 ) {
-    val docker: Property<Docker> = objectFactory.property()
+    var docker: Docker = objectFactory.newInstance()
 
     fun docker(init: Docker.() -> Unit) {
-        docker.set(objectFactory.newInstance(Docker::class).apply(init))
+        docker.init()
     }
 
     val specs: NamedDomainObjectContainer<RequireDockerSpec> =
@@ -37,7 +38,7 @@ open class RequireDockerExtension
         }
     }
 
-    class Docker
+    open class Docker
     @Inject constructor(objectFactory: ObjectFactory) : DockerExtension(objectFactory) {
     }
 }
