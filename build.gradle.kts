@@ -4,8 +4,8 @@ import org.jetbrains.kotlin.gradle.plugin.KotlinPluginWrapper
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "1.5.31" apply false
-    kotlin("kapt") version "1.5.31" apply false
+    kotlin("jvm") version "1.7.10" apply false
+    kotlin("kapt") version "1.7.10" apply false
 
     id("com.diffplug.spotless") version "6.12.0" apply false
     id("com.github.johnrengelman.shadow") version "7.1.2" apply false
@@ -24,7 +24,7 @@ allprojects {
             resolutionStrategy {
                 eachDependency {
                     if (requested.group == "org.jetbrains.kotlin") {
-                        useVersion("1.5.31")
+                        useVersion("1.7.10")
                     }
                 }
             }

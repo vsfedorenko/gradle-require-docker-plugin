@@ -1,20 +1,19 @@
 import com.diffplug.gradle.spotless.SpotlessExtension
 import com.github.jengelman.gradle.plugins.shadow.tasks.ConfigureShadowRelocation
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.unbrokendome.gradle.plugins.testsets.dsl.TestSetContainer
 
 plugins {
     `kotlin-dsl`
     `java-gradle-plugin`
 
-    kotlin("jvm") version "1.5.31"
-    kotlin("kapt") version "1.5.31"
+    kotlin("jvm")
+    kotlin("kapt")
 
-    id("com.diffplug.spotless") version "6.12.0"
-    id("com.github.johnrengelman.shadow") version "7.1.2"
-    id("com.gradle.plugin-publish") version "1.1.0"
-    id("org.unbroken-dome.test-sets") version "4.0.0"
+    id("com.diffplug.spotless")
+    id("com.github.johnrengelman.shadow")
+    id("com.gradle.plugin-publish")
+    id("org.unbroken-dome.test-sets")
 }
 
 group = "io.github.meiblorn"
