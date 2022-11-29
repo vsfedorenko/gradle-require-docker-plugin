@@ -8,7 +8,7 @@ plugins {
     `kotlin-dsl`
     `java-gradle-plugin`
 
-    kotlin("jvm") version "1.5.31"
+    kotlin("jvm") version "1.7.22"
     kotlin("kapt") version "1.5.31"
 
     id("com.diffplug.spotless") version "6.11.0"
