@@ -20,7 +20,7 @@ class GradleScope(var projectDir: File) {
             .also { it.writeText(bodySupplier()) }
     }
 
-    fun runGradle(vararg arguments: String): BuildResult {
+    fun runGradle(vararg arguments: String, expectFailure: Boolean? = false): BuildResult {
         val mergedArguments =
             (setOf("--stacktrace", "--info") + arguments).toTypedArray()
 
@@ -31,7 +31,13 @@ class GradleScope(var projectDir: File) {
             .withPluginClasspath()
             .forwardOutput()
             .withArguments(*mergedArguments)
-            .build()
+            .let {
+                if (expectFailure == true) {
+                    it.buildAndFail()
+                } else {
+                    it.build()
+                }
+            }
     }
 }
 
