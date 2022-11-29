@@ -1,9 +1,8 @@
 Gradle RequireDocker plugin
 ===
 
-This plugin allows you to require Docker containers to be running before running a Gradle task.
+This plugin allows you to require Docker containers to be running before executing a Gradle task.
 
-Plugin is useful for tasks that require a database or other services to be running.
 For example, you can **require a Postgres container to be running before** executing
 a **Flyway migration and a JOOQ code generation** or **integration tests** tasks.
 
