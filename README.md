@@ -1,6 +1,13 @@
 Gradle RequireDocker plugin
 ===
 
+[![Build Status](https://github.com/meiblorn/gradle-require-docker-plugin/actions/workflows/build-on-push-to-main.yml/badge.svg?branch=main)](https://github.com/meiblorn/gradle-require-docker-plugin/actions/workflows/build-on-push-to-main.yml?query=branch%3Amain)
+[![codecov](https://codecov.io/gh/meiblorn/gradle-require-docker-plugin/branch/main/graph/badge.svg?token=7SWSOTIBMX)](https://codecov.io/gh/meiblorn/gradle-require-docker-plugin)
+[![GitHub Release](https://img.shields.io/github/release/meiblorn/gradle-require-docker-plugin.svg?label=GitHub%20Release)](https://github.com/meiblorn/gradle-require-docker-plugin/releases)
+[![Gradle Plugins Release](https://img.shields.io/maven-metadata/v/https/plugins.gradle.org/m2/io/github/meiblorn/require-docker/io.github.meiblorn.require-docker.gradle.plugin/maven-metadata.xml.svg?label=Gradle%20Plugin%20Portal)](https://plugins.gradle.org/plugin/dev.monosoul.jooq-docker)
+[![license](https://img.shields.io/github/license/meiblorn/gradle-require-docker-plugin.svg)](LICENSE)
+[![Semantic Release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
+
 This plugin allows you to require Docker containers to be running before executing a Gradle task.
 
 For example, you can **require a Postgres container to be running before** executing
@@ -74,10 +81,10 @@ requireDocker.spec("jooq") {
 
 ## TODO:
 
-- [ ] Publish plugin to Gradle Plugin Portal
+- [x] Publish plugin to Gradle Plugin Portal
 - [ ] Add test coverage
-- [ ] Add GitHub Actions workflow
-- [ ] Add badges to README.md
+- [x] Add GitHub Actions workflow
+- [x] Add badges to README.md
 - [ ] Add more samples
 - [ ] Clean up code
     - [ ] Make tasks more specific by utilising specs instances
