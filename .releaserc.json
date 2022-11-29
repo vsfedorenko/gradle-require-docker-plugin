@@ -5,8 +5,18 @@
   "ci": true,
   "tagFormat": "${version}",
   "plugins": [
-    "@semantic-release/commit-analyzer",
-    "@semantic-release/release-notes-generator",
+    [
+      "@semantic-release/commit-analyzer",
+      {
+        "preset": "conventionalchangelog"
+      }
+    ],
+    [
+      "@semantic-release/release-notes-generator",
+      {
+        "preset": "conventionalchangelog"
+      }
+    ],
     [
       "@semantic-release/github",
       {
