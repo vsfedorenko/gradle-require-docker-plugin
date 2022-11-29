@@ -5,7 +5,7 @@ This plugin allows you to require Docker containers to be running before executi
 
 For example, you can **require a Postgres container to be running before** executing
 a **Flyway migration and a JOOQ code generation** or **integration tests** tasks. Plugin also
-maintains containers lifecycle, so you **don't need to worry about stopping containers after**.
+maintains containers lifecycle, so you **don't need to worry about stopping and removing containers after**.
 
 ```kotlin
 plugins {
