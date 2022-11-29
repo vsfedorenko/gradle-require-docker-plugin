@@ -85,5 +85,13 @@ requireDocker.spec("jooq") {
     - [ ] Move extensions to separate source set
 - [ ] Cover with unit tests
 - [ ] Cover with integration tests
+  - [ ] Check Docker client
+  - [ ] Check Bmuschko's Gradle plugin conflicts
+  - [ ] Check Spring Boot Gradle plugin conflicts
+  - [ ] Check Micronaut Gradle plugin conflicts
 - [ ] Add java docs
 - [ ] Add docs (preferably using [docusaurus](https://docusaurus.io/))
+
+## License
+
+RequireDocker plugin is licensed under the **MIT** License. See [LICENSE](LICENSE) for more information.
