@@ -5,7 +5,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     kotlin("jvm") version "1.5.31" apply false
-    kotlin("kapt") version "1.5.31" apply false
+    kotlin("kapt") version "1.7.22" apply false
 
     id("com.diffplug.spotless") version "6.11.0" apply false
     id("com.github.johnrengelman.shadow") version "7.1.2" apply false
