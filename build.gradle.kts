@@ -70,23 +70,25 @@ tasks.withType<Test> {
 
 val shadowJar by tasks.getting(ShadowJar::class) {
     archiveClassifier.set("")
-
     configurations = listOf(project.configurations.shadow.get())
-
     exclude(
-        "migrations/*",
-        "META-INF/INDEX.LIST",
-        "META-INF/*.SF",
         "META-INF/*.DSA",
         "META-INF/*.RSA",
-        "META-INF/NOTICE*",
-        "META-INF/README*",
+        "META-INF/*.SF",
         "META-INF/CHANGELOG*",
         "META-INF/DEPENDENCIES*",
-        "module-info.class"
-    )
+        "META-INF/INDEX.LIST",
+        "META-INF/NOTICE*",
+        "META-INF/README*",
+        "migrations/*",
+        "module-info.class",
 
+        // Nothing personal, just don't want to keep it in the jar
+        // while it's not used because of shadow minification
+        "META-INF/gradle-plugins/com.bmuschko.*",
+    )
     mergeServiceFiles()
+    minimize()
 }
 
 val jar by tasks.getting(Jar::class) {
@@ -95,19 +97,16 @@ val jar by tasks.getting(Jar::class) {
 
 val relocateShadowJar by tasks.creating(ConfigureShadowRelocation::class) {
     target = shadowJar
-    prefix = "io.github.meiblorn.requiredocker.shadow"
+    prefix = "io.github.meiblorn.requiredocker.shaded"
 }
 
 shadowJar.dependsOn(relocateShadowJar)
 
 gradlePlugin {
-    val requireDocker by
-    plugins.creating {
+    val requireDocker by plugins.creating {
         id = "io.github.meiblorn.require-docker"
-        implementationClass =
-            "io.github.meiblorn.requiredocker.RequireDockerPlugin"
+        implementationClass = "io.github.meiblorn.requiredocker.RequireDockerPlugin"
         version = project.version
-
         displayName = "Require Docker Plugin"
         description =
             """Gradle plugin to require Docker to be up 
