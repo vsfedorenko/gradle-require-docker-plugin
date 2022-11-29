@@ -17,7 +17,7 @@ open class RequireDockerPlugin : Plugin<Project> {
     override fun apply(project: Project) = with(project) {
         val extension = newExtension()
         configureRegistryCredentialsAwareTasks(
-            extension.docker.map { it.registryCredentials })
+            extension.docker.registryCredentials)
 
         val service = newDockerService(extension)
         tasks.withType(AbstractDockerRemoteApiTask::class).configureEach {
@@ -42,20 +42,20 @@ open class RequireDockerPlugin : Plugin<Project> {
             DockerClientService::class
         ) {
             parameters {
-                url.set(extension.docker.flatMap { it.url })
-                certPath.set(extension.docker.flatMap { it.certPath })
-                apiVersion.set(extension.docker.flatMap { it.apiVersion })
+                url.set(extension.docker.url)
+                certPath.set(extension.docker.certPath)
+                apiVersion.set(extension.docker.apiVersion)
             }
         }
 
     private fun Project.configureRegistryCredentialsAwareTasks(
-        extensionRegistryCredentials: Provider<DockerRegistryCredentials>
+        extensionRegistryCredentials: DockerRegistryCredentials
     ) {
         tasks.withType(RegistryCredentialsAware::class).configureEach {
-            registryCredentials.url.set(extensionRegistryCredentials.flatMap { it.url })
-            registryCredentials.username.set(extensionRegistryCredentials.flatMap { it.username })
-            registryCredentials.password.set(extensionRegistryCredentials.flatMap { it.password })
-            registryCredentials.email.set(extensionRegistryCredentials.flatMap { it.email })
+            registryCredentials.url.set(extensionRegistryCredentials.url)
+            registryCredentials.username.set(extensionRegistryCredentials.username)
+            registryCredentials.password.set(extensionRegistryCredentials.password)
+            registryCredentials.email.set(extensionRegistryCredentials.email)
         }
     }
 

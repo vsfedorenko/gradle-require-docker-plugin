@@ -9,13 +9,16 @@ import java.util.concurrent.TimeoutException
 
 open class DockerWaitHealthyContainerTask : DockerExistingContainer() {
 
-    @Input
-    @Optional
-    val timeout: Duration = Duration.ofSeconds(60)
+    @field:Input
+    @field:Optional
+    var timeout: Duration = Duration.ofSeconds(60)
 
-    @Input
-    @Optional
-    val checkInterval: Duration = Duration.ofSeconds(5)
+    @field:Input
+    @field:Optional
+    var checkInterval: Duration = Duration.ofSeconds(2)
+
+    @field:Input
+    var healthyThreshold: Int = 3
 
     init {
         group = "docker"
@@ -28,9 +31,10 @@ open class DockerWaitHealthyContainerTask : DockerExistingContainer() {
         val endTime = System.currentTimeMillis() + timeout.toMillis()
         val sleepTime = checkInterval.toMillis()
 
+        var healthyCount = 0
         while (System.currentTimeMillis() < endTime) {
-            if (isHealthy()) {
-                break;
+            if (isHealthy() && healthyCount++ >= healthyThreshold) {
+                break
             }
 
             Thread.sleep(sleepTime)
@@ -38,7 +42,7 @@ open class DockerWaitHealthyContainerTask : DockerExistingContainer() {
 
         if (!isHealthy()) {
             throw TimeoutException(
-                "Container $containerId is not healthy after ${timeout.toMillis()} milliseconds"
+                "Container ${containerId.get()} is not healthy after ${timeout.toMillis()} milliseconds"
             )
         }
 
@@ -46,8 +50,12 @@ open class DockerWaitHealthyContainerTask : DockerExistingContainer() {
     }
 
     private fun isHealthy(): Boolean {
+        logger.info("Inspecting container {}", containerId.get())
+
         val command = dockerClient.inspectContainerCmd(containerId.get())
         val response = command.exec()
+        logger.debug("Container inspected: {}", response)
+
         val state = response?.state
 
         val health = state?.health

@@ -42,6 +42,13 @@ open class RequireDockerContainer
         portBindings.addAll(value)
     }
 
+    fun envVars(vararg value: String) {
+        if (value.size % 2 != 0) {
+            throw IllegalArgumentException("envVars must be a list of key-value pairs")
+        }
+        envVars.putAll(value.toList().chunked(2).associate { it[0] to it[1] })
+    }
+
     fun envVars(vararg value: Pair<String, String>) {
         envVars.putAll(value.toMap())
     }
