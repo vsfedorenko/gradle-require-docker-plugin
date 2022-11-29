@@ -18,7 +18,7 @@ jobs:
       - name: Run tests
         uses: gradle/gradle-build-action@v2
         with:
-          arguments: test functionalTest
+          arguments: test functionalTest jacocoTestReport
       - name: Test publishing
         uses: gradle/gradle-build-action@v2
         with:

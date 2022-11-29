@@ -4,6 +4,4 @@ pluginManagement {
     }
 }
 
-include(":modules:e2e")
 include(":modules:plugin")
-include(":modules:test-fixtures")

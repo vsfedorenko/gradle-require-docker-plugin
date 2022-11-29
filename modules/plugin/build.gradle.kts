@@ -50,6 +50,10 @@ configure<TestSetContainer> {
     }
 }
 
+tasks.withType<Jar> {
+    archiveBaseName.set("gradle-require-docker-plugin")
+}
+
 val shadowJar by tasks.getting(ShadowJar::class) {
     archiveClassifier.set("")
     configurations = listOf(project.configurations.shadow.get())
@@ -74,6 +78,7 @@ val shadowJar by tasks.getting(ShadowJar::class) {
 }
 
 val jar by tasks.getting(Jar::class) {
+    enabled = false
     dependsOn(shadowJar)
 }
 
