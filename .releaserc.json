@@ -8,13 +8,13 @@
     [
       "@semantic-release/commit-analyzer",
       {
-        "preset": "conventionalchangelog"
+        "preset": "conventionalcommits"
       }
     ],
     [
       "@semantic-release/release-notes-generator",
       {
-        "preset": "conventionalchangelog"
+        "preset": "conventionalcommits"
       }
     ],
     [
