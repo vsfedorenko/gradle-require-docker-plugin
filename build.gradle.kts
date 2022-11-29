@@ -2,6 +2,7 @@ import com.diffplug.gradle.spotless.SpotlessExtension
 import com.github.jengelman.gradle.plugins.shadow.tasks.ConfigureShadowRelocation
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.unbrokendome.gradle.plugins.testsets.dsl.TestSetContainer
 
 plugins {
     `kotlin-dsl`
@@ -9,6 +10,7 @@ plugins {
     id("com.diffplug.spotless") version "6.11.0"
     id("com.github.johnrengelman.shadow") version "7.1.2"
     id("com.gradle.plugin-publish") version "1.1.0"
+    id("org.unbroken-dome.test-sets") version "4.0.0"
 }
 
 group = "io.github.meiblorn"
@@ -66,6 +68,13 @@ tasks.withType<KotlinCompile> {
 
 tasks.withType<Test> {
     useJUnitPlatform()
+}
+
+configure<TestSetContainer> {
+    val unitTest by getting
+    val integrationTest by creating {
+        extendsFrom(unitTest)
+    }
 }
 
 val shadowJar by tasks.getting(ShadowJar::class) {
