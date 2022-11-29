@@ -1,25 +1,28 @@
 package io.github.meiblorn.requiredocker
 
+import com.bmuschko.gradle.docker.DockerExtension
 import org.gradle.api.NamedDomainObjectContainer
-import org.gradle.api.NamedDomainObjectProvider
 import org.gradle.api.model.ObjectFactory
+import org.gradle.api.provider.Property
 import org.gradle.kotlin.dsl.domainObjectContainer
 import org.gradle.kotlin.dsl.newInstance
+import org.gradle.kotlin.dsl.property
 import javax.inject.Inject
 
 open class RequireDockerExtension
 @Inject constructor(
-    objectFactory: ObjectFactory
+    private val objectFactory: ObjectFactory
 ) {
+    val docker: Property<Docker> = objectFactory.property()
+
+    fun docker(init: Docker.() -> Unit) {
+        docker.set(objectFactory.newInstance(Docker::class).apply(init))
+    }
+
     val specs: NamedDomainObjectContainer<RequireDockerSpec> =
         objectFactory.domainObjectContainer(
             RequireDockerSpec::class
         ) { objectFactory.newInstance(RequireDockerSpec::class, it) }
-
-    val containers: NamedDomainObjectContainer<RequireDockerContainer> =
-        objectFactory.domainObjectContainer(
-            RequireDockerContainer::class
-        ) { objectFactory.newInstance(RequireDockerContainer::class, it) }
 
     fun spec(name: String): RequireDockerSpec {
         return specs.named(name).get()
@@ -34,13 +37,7 @@ open class RequireDockerExtension
         }
     }
 
-    fun container(name: String): NamedDomainObjectProvider<RequireDockerContainer> {
-        return containers.named(name)
-    }
-
-    fun container(name: String, init: RequireDockerContainer.() -> Unit): RequireDockerContainer {
-        return containers.create(name).apply {
-            init()
-        }
+    class Docker
+    @Inject constructor(objectFactory: ObjectFactory) : DockerExtension(objectFactory) {
     }
 }

@@ -1,26 +1,30 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import com.diffplug.gradle.spotless.SpotlessExtension
 import com.github.jengelman.gradle.plugins.shadow.tasks.ConfigureShadowRelocation
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     `kotlin-dsl`
-    id("com.gradle.plugin-publish") version "1.1.0"
+
+    id("com.diffplug.spotless") version "6.11.0"
     id("com.github.johnrengelman.shadow") version "7.1.2"
+    id("com.gradle.plugin-publish") version "1.1.0"
 }
 
 group = "io.github.meiblorn"
 
+description =
+    """Gradle plugin for requiring Docker containers 
+    to be up and running before executing attached tasks
+    """.trimIndent()
+
 repositories {
     mavenCentral()
-    maven {
-        url = uri("https://plugins.gradle.org/m2")
-    }
+    maven { url = uri("https://plugins.gradle.org/m2") }
 }
 
 configurations {
-    implementation {
-        extendsFrom(shadow.get())
-    }
+    implementation { extendsFrom(shadow.get()) }
 }
 
 afterEvaluate {
@@ -33,12 +37,35 @@ dependencies {
     shadow("com.bmuschko:gradle-docker-plugin:9.0.1")
 }
 
-tasks.test {
-    useJUnitPlatform()
+configure<SourceSetContainer> {
+    main {
+        java {
+            // https://arturdryomov.dev/posts/kotlin-code-organization/
+            srcDirs("src/main/kotlinExtensions")
+        }
+    }
+    test {
+        java {
+            // https://arturdryomov.dev/posts/kotlin-code-organization/
+            srcDirs("src/test/kotlinExtensions")
+        }
+    }
+}
+
+configure<JavaPluginExtension> {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(8))
+    }
 }
 
 tasks.withType<KotlinCompile> {
-    kotlinOptions.jvmTarget = "1.8"
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+}
+
+tasks.withType<Test> {
+    useJUnitPlatform()
 }
 
 val shadowJar by tasks.getting(ShadowJar::class) {
@@ -74,21 +101,40 @@ val relocateShadowJar by tasks.creating(ConfigureShadowRelocation::class) {
 shadowJar.dependsOn(relocateShadowJar)
 
 gradlePlugin {
-    plugins.create("requireDocker") {
+    val requireDocker by
+    plugins.creating {
         id = "io.github.meiblorn.require-docker"
-        implementationClass = "io.github.meiblorn.requiredocker.RequireDockerPlugin"
+        implementationClass =
+            "io.github.meiblorn.requiredocker.RequireDockerPlugin"
         version = project.version
 
         displayName = "Require Docker Plugin"
-        description = "Gradle plugin to require Docker to be running before executing tasks"
+        description =
+            """Gradle plugin to require Docker to be up 
+                and running before executing attached tasks
+            """.trimIndent()
     }
 }
 
 pluginBundle {
     website = "https://github.com/meiblorn/gradle-require-docker-plugin"
     vcsUrl = "https://github.com/meiblorn/gradle-require-docker-plugin"
+    tags = listOf("docker", "require", "gradle", "plugin")
+}
 
-    pluginTags = mapOf(
-        "requireDocker" to listOf("docker"),
-    )
+configure<SpotlessExtension> {
+    kotlin {
+        target("src/main/kotlin/**/*.kt")
+        target("src/main/kotlinExtensions/**/*.kt")
+
+        ktfmt().dropboxStyle().configure {
+            it.setMaxWidth(120)
+            it.setBlockIndent(4)
+            it.setContinuationIndent(4)
+            it.setRemoveUnusedImport(true)
+        }
+    }
+    kotlinGradle {
+        ktlint()
+    }
 }
