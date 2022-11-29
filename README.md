@@ -9,7 +9,7 @@ maintains containers lifecycle, so you **don't need to worry about stopping and 
 
 ```kotlin
 plugins {
-    id("io.github.meiblorn.require-docker") version "1.0.0"
+    id("io.github.meiblorn.require-docker") version "x.y.z"
 }
 
 requireDocker {
