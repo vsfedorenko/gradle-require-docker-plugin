@@ -100,7 +100,7 @@ gradlePlugin {
 pluginBundle {
     website = "https://github.com/meiblorn/gradle-require-docker-plugin"
     vcsUrl = "https://github.com/meiblorn/gradle-require-docker-plugin"
-    tags = listOf("docker", "require", "gradle", "plugin")
+    tags = listOf("docker", "require", "lifecycle")
 }
 
 configure<SpotlessExtension> {
