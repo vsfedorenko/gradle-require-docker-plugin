@@ -1,6 +1,7 @@
 import com.adarshr.gradle.testlogger.TestLoggerExtension
 import com.adarshr.gradle.testlogger.TestLoggerPlugin
 import com.adarshr.gradle.testlogger.theme.ThemeType.STANDARD
+import com.diffplug.gradle.spotless.SpotlessExtension
 import org.gradle.api.logging.LogLevel.LIFECYCLE
 import org.jetbrains.kotlin.gradle.plugin.KotlinPluginWrapper
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
@@ -9,7 +10,7 @@ plugins {
     kotlin("jvm") version "1.7.10" apply false
     kotlin("kapt") version "1.7.10" apply false
     id("com.adarshr.test-logger") version "3.2.0" apply false
-    id("com.diffplug.spotless") version "6.12.0" apply false
+    id("com.diffplug.spotless") version "6.12.0"
     id("com.github.johnrengelman.shadow") version "7.1.2" apply false
     id("com.gradle.plugin-publish") version "1.1.0" apply false
     id("org.unbroken-dome.test-sets") version "4.0.0" apply false
@@ -127,5 +128,22 @@ afterEvaluate {
         executionData.setFrom(subprojectTasks.flatMap { it.executionData })
 
         setDependsOn(subprojects.map { it.tasks.withType<Test>() })
+    }
+}
+
+configure<SpotlessExtension> {
+    kotlin {
+        target("src/main/kotlin/**/*.kt")
+        target("src/main/kotlinExtensions/**/*.kt")
+
+        ktfmt().dropboxStyle().configure {
+            it.setMaxWidth(120)
+            it.setBlockIndent(4)
+            it.setContinuationIndent(4)
+            it.setRemoveUnusedImport(true)
+        }
+    }
+    kotlinGradle {
+        ktlint()
     }
 }

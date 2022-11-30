@@ -1,4 +1,3 @@
-import com.diffplug.gradle.spotless.SpotlessExtension
 import com.github.jengelman.gradle.plugins.shadow.tasks.ConfigureShadowRelocation
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import org.unbrokendome.gradle.plugins.testsets.dsl.TestSetContainer
@@ -12,7 +11,6 @@ plugins {
     kotlin("jvm")
     kotlin("kapt")
 
-    id("com.diffplug.spotless")
     id("com.github.johnrengelman.shadow")
     id("com.gradle.plugin-publish")
     id("org.unbroken-dome.test-sets")
@@ -55,14 +53,16 @@ configure<TestSetContainer> {
 
 configure<JacocoTestKitExtension> {
     val functionalTestRuntimeOnly by configurations.getting
-    applyTo(functionalTestRuntimeOnly.name, tasks.named("functionalTest"))
+    val functionalTest = tasks.named("functionalTest")
+    applyTo(functionalTestRuntimeOnly.name, functionalTest)
 }
 
-tasks.withType<GenerateJaCoCoTestKitProperties> {
+val generateJacocoFunctionalTestKitProperties by tasks.getting(GenerateJaCoCoTestKitProperties::class) {
+
     val execFilePath =
         project.layout.buildDirectory
             .dir("jacoco")
-            .map { it.file("gradleTestKit.exec") }
+            .map { it.file("functionalTestKit.exec") }
             .map { it.asFile }
             .map { it.path }
 
@@ -81,24 +81,23 @@ tasks.withType<JacocoReport> {
     )
 }
 
-afterEvaluate {
-    // NOTE: This is required to avoid printing of the following warning:
-    //
-    //     Execution optimizations have been disabled for task ':modules:plugin:functionalTest'
-    //     to ensure correctness due to the following reasons:
+// NOTE: This is required to avoid printing of the following warning:
+//
+//     Execution optimizations have been disabled for task ':modules:plugin:functionalTest'
+//     to ensure correctness due to the following reasons:
 
-    //     Gradle detected a problem with the following location: '/path/to/modules/plugin/build/testkit/test'.
-    //     Reason: Task ':modules:plugin:functionalTest' uses this output
-    //     of task ':modules:plugin:generateJacocoTestKitProperties' without declaring an
-    //     explicit or implicit dependency. This can lead to incorrect results being produced, depending on what
-    //     order the tasks are executed.
-    //
-    //     Please refer to https://docs.gradle.org/7.6/userguide/validation_problems.html#implicit_dependency
-    //     for more details about this problem.
-    //
-    val functionalTest by tasks.getting(Test::class) {
-        dependsOn(tasks.withType<GenerateJaCoCoTestKitProperties>())
-    }
+//     Gradle detected a problem with the following location: '/path/to/modules/plugin/build/testkit/test'.
+//     Reason: Task ':modules:plugin:functionalTest' uses this output
+//     of task ':modules:plugin:generateJacocoTestKitProperties' without declaring an
+//     explicit or implicit dependency. This can lead to incorrect results being produced, depending on what
+//     order the tasks are executed.
+//
+//     Please refer to https://docs.gradle.org/7.6/userguide/validation_problems.html#implicit_dependency
+//     for more details about this problem.
+//
+val functionalTest by tasks.getting(Test::class) {
+    maxParallelForks = Runtime.getRuntime().availableProcessors()
+    dependsOn(tasks.withType<GenerateJaCoCoTestKitProperties>())
 }
 
 tasks.withType<Jar> {
@@ -157,21 +156,4 @@ pluginBundle {
     website = "https://github.com/meiblorn/gradle-require-docker-plugin"
     vcsUrl = "https://github.com/meiblorn/gradle-require-docker-plugin"
     tags = listOf("docker", "require", "lifecycle")
-}
-
-configure<SpotlessExtension> {
-    kotlin {
-        target("src/main/kotlin/**/*.kt")
-        target("src/main/kotlinExtensions/**/*.kt")
-
-        ktfmt().dropboxStyle().configure {
-            it.setMaxWidth(120)
-            it.setBlockIndent(4)
-            it.setContinuationIndent(4)
-            it.setRemoveUnusedImport(true)
-        }
-    }
-    kotlinGradle {
-        ktlint()
-    }
 }
