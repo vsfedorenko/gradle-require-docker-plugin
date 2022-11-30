@@ -82,7 +82,7 @@ requireDocker.spec("jooq") {
 ## TODO:
 
 - [x] Publish plugin to Gradle Plugin Portal
-- [ ] Add test coverage
+- [x] Add test coverage
 - [x] Add GitHub Actions workflow
 - [x] Add badges to README.md
 - [ ] Add more samples
