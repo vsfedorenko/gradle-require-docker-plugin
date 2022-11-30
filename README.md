@@ -105,5 +105,5 @@ RequireDocker plugin is licensed under the **MIT** License. See [LICENSE](LICENS
 
 Project heavily relies on [Bmuschko's Docker plugin](https://github.com/bmuschko/gradle-docker-plugin).
 
-Inspired by [Abast's Docker Compose  plugin](https://github.com/avast/gradle-docker-compose-plugin) and
+Inspired by [Avast's Docker Compose  plugin](https://github.com/avast/gradle-docker-compose-plugin) and
 [Monosoul's JOOQ plugin](https://github.com/monosoul/jooq-gradle-plugin).
