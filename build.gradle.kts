@@ -13,7 +13,7 @@ plugins {
     id("com.github.johnrengelman.shadow") version "7.1.2" apply false
     id("com.gradle.plugin-publish") version "1.1.0" apply false
     id("org.unbroken-dome.test-sets") version "4.0.0" apply false
-    id("pl.droidsonroids.jacoco.testkit") version "1.0.8" apply false
+    id("pl.droidsonroids.jacoco.testkit") version "1.0.9" apply false
 }
 
 allprojects {
