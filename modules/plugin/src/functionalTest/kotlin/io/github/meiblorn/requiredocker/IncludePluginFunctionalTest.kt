@@ -2,12 +2,12 @@ package io.github.meiblorn.requiredocker
 
 import io.kotest.core.spec.style.DescribeSpec
 
-class IncludePluginFunctionalTest : DescribeSpec({
-
-    it("should run with plugin applied") {
-        gradleScope {
-            newFile("build.gradle.kts") {
-                """
+class IncludePluginFunctionalTest :
+    DescribeSpec({
+        it("should run with plugin applied") {
+            gradleScope {
+                newFile("build.gradle.kts") {
+                    """
                     plugins {
                         id("io.github.meiblorn.require-docker")
                     }
@@ -23,17 +23,18 @@ class IncludePluginFunctionalTest : DescribeSpec({
                             requireNotNull(project.extensions.findByName("requireDocker"))
                         }
                     }
-                    """.trimIndent()
+                    """
+                        .trimIndent()
+                }
+
+                runGradle("validatePluginApplied", "validateExtensionApplied")
             }
-
-            runGradle("validatePluginApplied", "validateExtensionApplied")
         }
-    }
 
-    it("should run with extension called") {
-        gradleScope {
-            newFile("build.gradle.kts") {
-                """
+        it("should run with extension called") {
+            gradleScope {
+                newFile("build.gradle.kts") {
+                    """
                     plugins {
                         id("io.github.meiblorn.require-docker")
                     }
@@ -52,10 +53,11 @@ class IncludePluginFunctionalTest : DescribeSpec({
                             requireNotNull(project.extensions.findByName("requireDocker"))
                         }
                     }
-                    """.trimIndent()
-            }
+                    """
+                        .trimIndent()
+                }
 
-            runGradle("validatePluginApplied", "validateExtensionApplied")
+                runGradle("validatePluginApplied", "validateExtensionApplied")
+            }
         }
-    }
-})
+    })

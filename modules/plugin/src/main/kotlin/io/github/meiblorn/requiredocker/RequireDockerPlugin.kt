@@ -4,43 +4,40 @@ import com.bmuschko.gradle.docker.DockerRegistryCredentials
 import com.bmuschko.gradle.docker.internal.services.DockerClientService
 import com.bmuschko.gradle.docker.tasks.AbstractDockerRemoteApiTask
 import com.bmuschko.gradle.docker.tasks.RegistryCredentialsAware
+import io.github.meiblorn.requiredocker.task.*
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
-import org.gradle.api.provider.Provider
 import org.gradle.kotlin.dsl.create
 import org.gradle.kotlin.dsl.registerIfAbsent
 import org.gradle.kotlin.dsl.withType
 
 open class RequireDockerPlugin : Plugin<Project> {
 
-    override fun apply(project: Project) = with(project) {
-        val extension = newExtension()
-        configureRegistryCredentialsAwareTasks(
-            extension.docker.registryCredentials)
+    override fun apply(project: Project) =
+        with(project) {
+            val extension = newExtension()
+            configureRegistryCredentialsAwareTasks(extension.docker.registryCredentials)
 
-        val service = newDockerService(extension)
-        tasks.withType(AbstractDockerRemoteApiTask::class).configureEach {
-            dockerClientService.set(service)
-        }
+            val service = newDockerService(extension)
+            tasks.withType(AbstractDockerRemoteApiTask::class).configureEach {
+                dockerClientService.set(service)
+            }
 
-        afterEvaluate {
-            extension.specs.forEach { spec ->
-                spec.finalize()
-                apply(spec)
+            afterEvaluate {
+                extension.specs.forEach { spec ->
+                    spec.finalize()
+                    apply(spec)
+                }
             }
         }
-    }
 
     private fun Project.newExtension(): RequireDockerExtension {
         return extensions.create("requireDocker", RequireDockerExtension::class)
     }
 
     private fun Project.newDockerService(extension: RequireDockerExtension) =
-        gradle.sharedServices.registerIfAbsent(
-            "docker",
-            DockerClientService::class
-        ) {
+        gradle.sharedServices.registerIfAbsent("docker", DockerClientService::class) {
             parameters {
                 url.set(extension.docker.url)
                 certPath.set(extension.docker.certPath)
@@ -61,63 +58,89 @@ open class RequireDockerPlugin : Plugin<Project> {
 
     private fun Project.apply(spec: RequireDockerSpec) {
         val dockerTaskNameGenerator: DockerTaskNameGenerator = DockerTaskNameGeneratorImpl()
-        val dockerContainerNameGenerator: DockerContainerNameGenerator = DockerContainerNameGeneratorImpl(this)
-        val dockerTaskFactory: DockerTaskFactory =
-            DockerTaskFactoryImpl(this, dockerContainerNameGenerator, dockerTaskNameGenerator)
+
+        val pullImageTaskFactory: PullImageTaskFactory = PullImageTaskFactoryImpl(this)
+
+        val createContainerTaskFactory: CreateContainerTaskFactory =
+            CreateContainerTaskFactoryImpl(this)
+
+        val startContainerTaskFactory: StartContainerTaskFactory =
+            StartContainerTaskFactoryImpl(this)
+
+        val waitHealthyContainerTaskFactory: WaitHealthyContainerTaskFactory =
+            WaitHealthyContainerTaskFactoryImpl(this)
+
+        val waitLogMessageTaskFactory: WaitLogMessageTaskFactory =
+            WaitLogMessageTaskFactoryImpl(this)
+
+        val stopContainerTaskFactory: StopContainerTaskFactory = StopContainerTaskFactoryImpl(this)
+
+        val removeContainerTaskFactory: RemoveContainerTaskFactory =
+            RemoveContainerTaskFactoryImpl(this)
 
         spec.containers.forEach { container ->
             val pullImageTask =
-                dockerTaskFactory.newPullImageTask(container)
+                pullImageTaskFactory.create(
+                    name = dockerTaskNameGenerator.generate(container, "pull", "Image"),
+                    container = container)
 
             val createContainerTask =
-                dockerTaskFactory.newCreateContainerTask(container) {
-                    dependsOn(pullImageTask)
-                }
+                createContainerTaskFactory
+                    .create(
+                        name = dockerTaskNameGenerator.generate(container, "create", "Container"),
+                        container = container)
+                    .also { it.configure { dependsOn(pullImageTask) } }
 
             val startContainerTask =
-                dockerTaskFactory.newStartContainerTask(
-                    container,
-                    createContainerTask.flatMap { it.containerId }) {
-                    dependsOn(createContainerTask)
-                }
+                startContainerTaskFactory
+                    .create(
+                        name = dockerTaskNameGenerator.generate(container, "start", "Container"),
+                        containerId = createContainerTask.flatMap { it.containerId })
+                    .also { it.configure { dependsOn(createContainerTask) } }
 
             val waitHealthyContainerTask =
-                dockerTaskFactory.newWaitHealthyContainerTask(
-                    container,
-                    startContainerTask.flatMap { it.containerId }) {
-                    dependsOn(startContainerTask)
-                }
+                waitHealthyContainerTaskFactory
+                    .create(
+                        name =
+                            dockerTaskNameGenerator.generate(container, "waitHealthy", "Container"),
+                        containerId = createContainerTask.flatMap { it.containerId })
+                    .also { it.configure { dependsOn(startContainerTask) } }
 
             var lastHealthTask: Task = waitHealthyContainerTask.get()
-            container.readinessProbes.get().forEach { probe ->
-                var probeTask = when (probe) {
-                    is LogMessageReadinessProbe -> {
-                        dockerTaskFactory.newWaitLogMessageTask(
-                            container,
-                            probe,
-                            startContainerTask.flatMap { it.containerId }) {
-                            dependsOn(lastHealthTask)
+            container.readyChecks.get().forEach { probe ->
+                var probeTask =
+                    when (probe) {
+                        is LogMessageReadyCheck -> {
+                            waitLogMessageTaskFactory
+                                .create(
+                                    name =
+                                        dockerTaskNameGenerator.generate(
+                                            container, "waitLogMessage", "Container"),
+                                    container = container,
+                                    probe = probe,
+                                    containerId = startContainerTask.flatMap { it.containerId })
+                                .also { it.configure { dependsOn(lastHealthTask) } }
                         }
+                        else ->
+                            throw IllegalArgumentException(
+                                "Unknown readiness probe type: ${probe.javaClass}")
                     }
-
-                    else -> throw IllegalArgumentException("Unknown readiness probe type: ${probe.javaClass}")
-                }
                 lastHealthTask = probeTask.get()
             }
 
             val stopContainerTask =
-                dockerTaskFactory.newStopContainerTask(
-                    container,
-                    createContainerTask.flatMap { it.containerId }) {
-                    dependsOn(lastHealthTask)
-                }
+                stopContainerTaskFactory
+                    .create(
+                        name = dockerTaskNameGenerator.generate(container, "stop", "Container"),
+                        containerId = createContainerTask.flatMap { it.containerId })
+                    .also { it.configure { dependsOn(lastHealthTask) } }
 
             val removeContainerTask =
-                dockerTaskFactory.newRemoveContainerTask(
-                    container,
-                    createContainerTask.flatMap { it.containerId }) {
-                    dependsOn(stopContainerTask)
-                }
+                removeContainerTaskFactory
+                    .create(
+                        name = dockerTaskNameGenerator.generate(container, "remove", "Container"),
+                        containerId = createContainerTask.flatMap { it.containerId })
+                    .also { it.configure { dependsOn(stopContainerTask) } }
 
             spec.tasks.get().forEach { task ->
                 task.dependsOn(lastHealthTask)

@@ -96,7 +96,7 @@ tasks.withType<JacocoReport> {
 //     for more details about this problem.
 //
 val functionalTest by tasks.getting(Test::class) {
-    val processorCount = Runtime.getRuntime().availableProcessors() / 2
+    val processorCount = Runtime.getRuntime().availableProcessors() / 4
     maxParallelForks = if (processorCount > 0) processorCount else 1
     dependsOn(tasks.withType<GenerateJaCoCoTestKitProperties>())
 }

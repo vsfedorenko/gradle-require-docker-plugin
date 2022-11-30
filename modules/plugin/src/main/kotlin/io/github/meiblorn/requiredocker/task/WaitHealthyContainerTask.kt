@@ -1,24 +1,24 @@
 package io.github.meiblorn.requiredocker.task
 
-
 import com.bmuschko.gradle.docker.tasks.container.DockerExistingContainer
-import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.Optional
+import io.github.meiblorn.requiredocker.RequireDockerTask
 import java.time.Duration
 import java.util.concurrent.TimeoutException
+import javax.inject.Inject
+import org.gradle.api.Project
+import org.gradle.api.provider.Provider
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Optional
+import org.gradle.api.tasks.TaskProvider
+import org.gradle.kotlin.dsl.register
 
-open class DockerWaitHealthyContainerTask : DockerExistingContainer() {
+open class WaitHealthyContainerTask : DockerExistingContainer(), RequireDockerTask {
 
-    @field:Input
-    @field:Optional
-    var timeout: Duration = Duration.ofSeconds(60)
+    @field:Input @field:Optional var timeout: Duration = Duration.ofSeconds(60)
 
-    @field:Input
-    @field:Optional
-    var checkInterval: Duration = Duration.ofSeconds(2)
+    @field:Input @field:Optional var checkInterval: Duration = Duration.ofSeconds(2)
 
-    @field:Input
-    var healthyThreshold: Int = 3
+    @field:Input var healthyThreshold: Int = 3
 
     init {
         group = "docker"
@@ -42,8 +42,7 @@ open class DockerWaitHealthyContainerTask : DockerExistingContainer() {
 
         if (!isHealthy()) {
             throw TimeoutException(
-                "Container ${containerId.get()} is not healthy after ${timeout.toMillis()} milliseconds"
-            )
+                "Container ${containerId.get()} is not healthy after ${timeout.toMillis()} milliseconds")
         }
 
         logger.quiet("Container {} is healthy", containerId.get())
@@ -64,5 +63,23 @@ open class DockerWaitHealthyContainerTask : DockerExistingContainer() {
         }
 
         return state?.status == "running"
+    }
+}
+
+interface WaitHealthyContainerTaskFactory {
+
+    fun create(name: String, containerId: Provider<String>): TaskProvider<WaitHealthyContainerTask>
+}
+
+open class WaitHealthyContainerTaskFactoryImpl @Inject constructor(private val project: Project) :
+    WaitHealthyContainerTaskFactory {
+
+    override fun create(
+        name: String,
+        containerId: Provider<String>
+    ): TaskProvider<WaitHealthyContainerTask> {
+        return project.tasks.register<WaitHealthyContainerTask>(name) {
+            this.containerId.set(containerId)
+        }
     }
 }

@@ -1,5 +1,6 @@
 package io.github.meiblorn.requiredocker
 
+import javax.inject.Inject
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.MapProperty
@@ -7,10 +8,10 @@ import org.gradle.api.provider.Property
 import org.gradle.kotlin.dsl.listProperty
 import org.gradle.kotlin.dsl.mapProperty
 import org.gradle.kotlin.dsl.property
-import javax.inject.Inject
 
 open class RequireDockerContainer
-@Inject constructor(
+@Inject
+constructor(
     internal val spec: RequireDockerSpec,
     val name: String,
     private val objectFactory: ObjectFactory
@@ -18,16 +19,13 @@ open class RequireDockerContainer
     internal val image: Property<String> = objectFactory.property(String::class)
 
     internal val portBindings: ListProperty<String> =
-        objectFactory.listProperty(String::class)
-            .convention(mutableListOf())
+        objectFactory.listProperty(String::class).convention(mutableListOf())
 
     internal val envVars: MapProperty<String, String> =
-        objectFactory.mapProperty(String::class, String::class)
-            .convention(mutableMapOf())
+        objectFactory.mapProperty(String::class, String::class).convention(mutableMapOf())
 
-    internal val readinessProbes: ListProperty<RequreDockerReadinessProbe> =
-        objectFactory.listProperty(RequreDockerReadinessProbe::class)
-            .convention(mutableListOf())
+    internal val readyChecks: ListProperty<RequireDockerReadyCheck> =
+        objectFactory.listProperty(RequireDockerReadyCheck::class).convention(mutableListOf())
 
     fun image(value: String) {
         image.set(value)
@@ -57,12 +55,8 @@ open class RequireDockerContainer
         envVars.putAll(value)
     }
 
-    fun readinessProbe(vararg value: RequreDockerReadinessProbe) {
-        readinessProbes.addAll(value.toList())
-    }
-
     internal fun finalize() {
-        for (property in listOf(image, portBindings, envVars, readinessProbes)) {
+        for (property in listOf(image, portBindings, envVars, readyChecks)) {
             property.finalizeValue()
         }
     }

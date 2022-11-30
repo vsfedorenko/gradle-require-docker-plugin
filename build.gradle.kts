@@ -2,6 +2,7 @@ import com.adarshr.gradle.testlogger.TestLoggerExtension
 import com.adarshr.gradle.testlogger.TestLoggerPlugin
 import com.adarshr.gradle.testlogger.theme.ThemeType.STANDARD
 import com.diffplug.gradle.spotless.SpotlessExtension
+import com.diffplug.gradle.spotless.SpotlessPlugin
 import org.gradle.api.logging.LogLevel.LIFECYCLE
 import org.jetbrains.kotlin.gradle.plugin.KotlinPluginWrapper
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
@@ -19,6 +20,7 @@ plugins {
 
 allprojects {
     apply<JacocoPlugin>()
+    apply<SpotlessPlugin>()
 
     repositories {
         mavenCentral()
@@ -109,6 +111,29 @@ allprojects {
                     }
                 }
             }
+
+            configure<SpotlessExtension> {
+                kotlin {
+                    target(
+                        fileTree("${projectDir.path}/src") {
+                            include("**/*.kt")
+                        }
+                    )
+
+                    ktfmt().dropboxStyle().configure {
+                        it.setMaxWidth(100)
+                        it.setBlockIndent(4)
+                        it.setContinuationIndent(4)
+                        it.setRemoveUnusedImport(true)
+                    }
+                }
+            }
+        }
+    }
+
+    configure<SpotlessExtension> {
+        kotlinGradle {
+            ktlint()
         }
     }
 }
@@ -128,22 +153,5 @@ afterEvaluate {
         executionData.setFrom(subprojectTasks.flatMap { it.executionData })
 
         setDependsOn(subprojects.map { it.tasks.withType<Test>() })
-    }
-}
-
-configure<SpotlessExtension> {
-    kotlin {
-        target("src/main/kotlin/**/*.kt")
-        target("src/main/kotlinExtensions/**/*.kt")
-
-        ktfmt().dropboxStyle().configure {
-            it.setMaxWidth(120)
-            it.setBlockIndent(4)
-            it.setContinuationIndent(4)
-            it.setRemoveUnusedImport(true)
-        }
-    }
-    kotlinGradle {
-        ktlint()
     }
 }

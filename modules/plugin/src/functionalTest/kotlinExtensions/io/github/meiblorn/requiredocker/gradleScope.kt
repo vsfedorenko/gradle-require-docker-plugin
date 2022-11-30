@@ -2,12 +2,12 @@ package io.github.meiblorn.requiredocker
 
 import io.kotest.core.TestConfiguration
 import io.kotest.engine.spec.tempdir
-import org.gradle.testkit.runner.BuildResult
-import org.gradle.testkit.runner.GradleRunner
 import java.io.File
 import java.util.*
 import javax.io.newDirectory
 import javax.util.load
+import org.gradle.testkit.runner.BuildResult
+import org.gradle.testkit.runner.GradleRunner
 
 class GradleScope(var projectDir: File) {
 
@@ -24,11 +24,9 @@ class GradleScope(var projectDir: File) {
     }
 
     fun runGradle(vararg arguments: String, expectFailure: Boolean? = false): BuildResult {
-        val mergedArguments =
-            (setOf("--stacktrace", "--info") + arguments).toTypedArray()
+        val mergedArguments = (setOf("--stacktrace", "--info") + arguments).toTypedArray()
 
-        return GradleRunner
-            .create()
+        return GradleRunner.create()
             .withDebug(debug)
             .withProjectDir(projectDir)
             .withTestKitDir(projectDir.newDirectory(".testkit"))
@@ -46,21 +44,25 @@ class GradleScope(var projectDir: File) {
     }
 
     /**
-     * There is no built-it support for code coverage in TestKit.
-     * Those tests run in separate JVM and configuration of JaCoCo plugin is not taken into account.
+     * There is no built-it support for code coverage in TestKit. Those tests run in separate JVM
+     * and configuration of JaCoCo plugin is not taken into account.
      *
-     * @see <a href="https://github.com/koral--/jacoco-gradle-testkit-plugin/blob/master/README.md">Jacoco TestKit Plugin</a>
+     * @see <a
+     * href="https://github.com/koral--/jacoco-gradle-testkit-plugin/blob/master/README.md">Jacoco
+     * TestKit Plugin</a>
      */
     private fun GradleRunner.withJoCoCo(): GradleRunner {
         val gradlePropertiesFile = File(projectDir, "gradle.properties")
         val gradleProperties = Properties().load(gradlePropertiesFile)
 
-        val testkitGradleProperties = Properties().apply {
-            GradleScope::class.java
-                .classLoader
-                ?.getResourceAsStream("testkit-gradle.properties")
-                ?.use { load(it) }
-        }
+        val testkitGradleProperties =
+            Properties().apply {
+                GradleScope::class
+                    .java
+                    .classLoader
+                    ?.getResourceAsStream("testkit-gradle.properties")
+                    ?.use { load(it) }
+            }
 
         gradleProperties.putAll(testkitGradleProperties)
         gradleProperties.store(gradlePropertiesFile.outputStream(), null)

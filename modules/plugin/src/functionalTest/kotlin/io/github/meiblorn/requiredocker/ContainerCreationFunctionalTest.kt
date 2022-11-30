@@ -2,12 +2,12 @@ package io.github.meiblorn.requiredocker
 
 import io.kotest.core.spec.style.DescribeSpec
 
-class ContainerCreationFunctionalTest : DescribeSpec({
-
-    it("should create container using native Gradle approach") {
-        gradleScope {
-            newFile("build.gradle.kts") {
-                """
+class ContainerCreationFunctionalTest :
+    DescribeSpec({
+        it("should create container using native Gradle approach") {
+            gradleScope {
+                newFile("build.gradle.kts") {
+                    """
                     plugins {
                         id("io.github.meiblorn.require-docker")
                     }
@@ -25,17 +25,18 @@ class ContainerCreationFunctionalTest : DescribeSpec({
                             requireNotNull(requireDocker.spec("main").container("postgres"))
                         }
                     }
-                    """.trimIndent()
+                    """
+                        .trimIndent()
+                }
+
+                runGradle("validateContainerExists")
             }
-
-            runGradle("validateContainerExists")
         }
-    }
 
-    it ("should create container using plugin DSL approach") {
-        gradleScope {
-            newFile("build.gradle.kts") {
-                """
+        it("should create container using plugin DSL approach") {
+            gradleScope {
+                newFile("build.gradle.kts") {
+                    """
                     plugins {
                         id("io.github.meiblorn.require-docker")
                     }
@@ -53,10 +54,11 @@ class ContainerCreationFunctionalTest : DescribeSpec({
                             requireNotNull(requireDocker.spec("main").container("postgres"))
                         }
                     }
-                    """.trimIndent()
-            }
+                    """
+                        .trimIndent()
+                }
 
-            runGradle("validateContainerExists")
+                runGradle("validateContainerExists")
+            }
         }
-    }
-})
+    })

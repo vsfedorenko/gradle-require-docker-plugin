@@ -2,12 +2,12 @@ package io.github.meiblorn.requiredocker
 
 import io.kotest.core.spec.style.DescribeSpec
 
-class SpecCreationFunctionalTest : DescribeSpec({
-
-    it("should create spec using native Gradle approach") {
-        gradleScope {
-            newFile("build.gradle.kts") {
-                """
+class SpecCreationFunctionalTest :
+    DescribeSpec({
+        it("should create spec using native Gradle approach") {
+            gradleScope {
+                newFile("build.gradle.kts") {
+                    """
                     plugins {
                         id("io.github.meiblorn.require-docker")
                     }
@@ -22,17 +22,18 @@ class SpecCreationFunctionalTest : DescribeSpec({
                             requireNotNull(requireDocker.spec("main"))
                         }
                     }
-                    """.trimIndent()
+                    """
+                        .trimIndent()
+                }
+
+                runGradle("validateSpecExists")
             }
-
-            runGradle("validateSpecExists")
         }
-    }
 
-    it ("should create spec using plugin DSL approach") {
-        gradleScope {
-            newFile("build.gradle.kts") {
-                """
+        it("should create spec using plugin DSL approach") {
+            gradleScope {
+                newFile("build.gradle.kts") {
+                    """
                     plugins {
                         id("io.github.meiblorn.require-docker")
                     }
@@ -47,10 +48,11 @@ class SpecCreationFunctionalTest : DescribeSpec({
                             requireNotNull(requireDocker.spec("main"))
                         }
                     }
-                    """.trimIndent()
-            }
+                    """
+                        .trimIndent()
+                }
 
-            runGradle("build")
+                runGradle("build")
+            }
         }
-    }
-})
+    })
