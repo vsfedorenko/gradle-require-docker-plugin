@@ -4,7 +4,7 @@ Gradle RequireDocker plugin
 [![Build Status](https://github.com/meiblorn/gradle-require-docker-plugin/actions/workflows/build-on-push-to-main.yml/badge.svg?branch=main)](https://github.com/meiblorn/gradle-require-docker-plugin/actions/workflows/build-on-push-to-main.yml?query=branch%3Amain)
 [![codecov](https://codecov.io/gh/meiblorn/gradle-require-docker-plugin/branch/main/graph/badge.svg?token=7SWSOTIBMX)](https://codecov.io/gh/meiblorn/gradle-require-docker-plugin)
 [![GitHub Release](https://img.shields.io/github/release/meiblorn/gradle-require-docker-plugin.svg?label=GitHub%20Release)](https://github.com/meiblorn/gradle-require-docker-plugin/releases)
-[![Gradle Plugins Release](https://img.shields.io/maven-metadata/v/https/plugins.gradle.org/m2/io/github/meiblorn/require-docker/io.github.meiblorn.require-docker.gradle.plugin/maven-metadata.xml.svg?label=Gradle%20Plugin%20Portal)](https://plugins.gradle.org/plugin/dev.monosoul.jooq-docker)
+[![Gradle Plugins Release](https://img.shields.io/maven-metadata/v/https/plugins.gradle.org/m2/io/github/meiblorn/require-docker/io.github.meiblorn.require-docker.gradle.plugin/maven-metadata.xml.svg?label=Gradle%20Plugin%20Portal)](https://plugins.gradle.org/plugin/io.github.meiblorn.require-docker)
 [![license](https://img.shields.io/github/license/meiblorn/gradle-require-docker-plugin.svg)](LICENSE)
 [![Semantic Release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
 
@@ -102,3 +102,8 @@ requireDocker.spec("jooq") {
 ## License
 
 RequireDocker plugin is licensed under the **MIT** License. See [LICENSE](LICENSE) for more information.
+
+Project heavily relies on [Bmuschko's Docker plugin](https://github.com/bmuschko/gradle-docker-plugin).
+
+Inspired by [Abast's Docker Compose  plugin](https://github.com/avast/gradle-docker-compose-plugin) and
+[Monosoul's JOOQ plugin](https://github.com/monosoul/jooq-gradle-plugin).
