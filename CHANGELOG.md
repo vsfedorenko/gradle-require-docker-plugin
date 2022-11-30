@@ -1,3 +1,10 @@
+## [1.2.0](https://github.com/meiblorn/gradle-require-docker-plugin/compare/1.1.3...1.2.0) (2022-11-30)
+
+
+### Features
+
+* Use individual task factories instead of single one ([4489d5d](https://github.com/meiblorn/gradle-require-docker-plugin/commit/4489d5d918588407b2945b2e97334b7f49455b2a))
+
 ## [1.1.3](https://github.com/meiblorn/gradle-require-docker-plugin/compare/1.1.2...1.1.3) (2022-11-30)
 
 
