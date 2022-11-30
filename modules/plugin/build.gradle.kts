@@ -69,6 +69,18 @@ tasks.withType<GenerateJaCoCoTestKitProperties> {
     destinationFile.set(execFilePath)
 }
 
+tasks.withType<JacocoReport> {
+    executionData.setFrom(
+        project.layout.buildDirectory
+            .dir("jacoco")
+            .map {
+                it.asFileTree.matching {
+                    include("*.exec")
+                }
+            }
+    )
+}
+
 afterEvaluate {
     // NOTE: This is required to avoid printing of the following warning:
     //
