@@ -1,3 +1,10 @@
+## [1.1.3](https://github.com/meiblorn/gradle-require-docker-plugin/compare/1.1.2...1.1.3) (2022-11-30)
+
+
+### Style
+
+* Fix typo ([3386a26](https://github.com/meiblorn/gradle-require-docker-plugin/commit/3386a2650c6e6de82434cd4d4bd4e911ae9c8701))
+
 ## [1.1.2](https://github.com/meiblorn/gradle-require-docker-plugin/compare/1.1.1...1.1.2) (2022-11-30)
 
 
