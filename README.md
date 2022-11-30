@@ -8,9 +8,12 @@ Gradle RequireDocker plugin
 [![license](https://img.shields.io/github/license/meiblorn/gradle-require-docker-plugin.svg)](LICENSE)
 [![Semantic Release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
 
-> I am looking for help me to develop this plugin. 
+> I am looking for help to develop this plugin. 
 > I have a lot of ideas, but I don't have enough time to implement them all.
-> If you are interested, feel free to open an issue to discuss the details.
+> If you are interested, feel free to open 
+> an [issue](https://github.com/meiblorn/gradle-require-docker-plugin/issues) 
+> or a [discussion](https://github.com/meiblorn/gradle-require-docker-plugin/discussions) 
+> to talk about it.
 > Also, I will be happy to add you to the list of contributors.
 > Thank you!
 
