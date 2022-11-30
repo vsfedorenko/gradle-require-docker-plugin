@@ -8,9 +8,16 @@ Gradle RequireDocker plugin
 [![license](https://img.shields.io/github/license/meiblorn/gradle-require-docker-plugin.svg)](LICENSE)
 [![Semantic Release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
 
-This plugin allows you to require Docker containers to be running before executing a Gradle task.
+> I am looking for help me to develop this plugin. 
+> I have a lot of ideas, but I don't have enough time to implement them all.
+> If you are interested, feel free to open an issue to discuss the details.
+> Also, I will be happy to add you to the list of contributors.
+> Thank you!
 
-For example, you can **require a Postgres container to be running before** executing
+Integrate docker containers into your workflow.
+**Require** Docker containers to be **running before** executing a Gradle task and **shutdown after**.
+
+With this plugin, you can **require a Postgres container to be running before** executing
 a **Flyway migration and a JOOQ code generation** or **integration tests** tasks. Plugin also
 maintains containers lifecycle, so you **don't need to worry about stopping and removing containers after**.
 
@@ -20,19 +27,8 @@ plugins {
 }
 
 requireDocker {
-    docker {
-        // OPTIONAL: Docker client configuration
-        // Usually, you will never need to configure it
-    }
-    
-    // You can create multiple specs
-    spec("main") {
-        // ...
-    }
-    
-    // Sample spec for JOOQ code generation
-    spec("jooq") {
-        container("postgres") {
+    val jooq by requireDocker.specs.creating {
+        val postgres by contaienrs.creating {
             image("postgres:latest")
             portBindings("5432:5432")
             envVars(
@@ -41,27 +37,15 @@ requireDocker {
                 "POSTGRES_DB" to "postgres",
             )
         }
-        
-        // You can declare multiple containers
-        container("other") {
-            // ...
-        }
-    }
-    
-    // Another, third spec
-    spec("other") {
-        // ...
     }
 }
 
 // Create Flyway migrations task
 // This task creates schema and tables in the database
 val jooqFlywayMigrate by tasks.creating {
-    with(requireDocker.spec("jooq").container("postgres")) {
-        url = "jdbc:postgresql://localhost:${portBindings[5432]}/${envVars["POSTGRES_DB"]}"
-        user = envVars["POSTGRES_USER"]
-        password = envVars["POSTGRES_PASSWORD"]
-    }
+    url = "jdbc:postgresql://localhost:5432/postgres"
+    user = "postgres"
+    password = "postgres"
 }
 
 val generateJooq by tasks.getting {
@@ -87,15 +71,16 @@ requireDocker.spec("jooq") {
 - [x] Add badges to README.md
 - [ ] Add more samples
 - [ ] Clean up code
-    - [ ] Make tasks more specific by utilising specs instances
-      instead of direct configuration in TaskFactory
-    - [ ] Move extensions to separate source set
+    - [x] Move Kotlin extensions to separate Gradle source set
+    - [ ] Build internal task graph and then process it in a single place
+          instead of iterating specs and containers in nested loops
+    - [ ] Utilise dependency injection features of Gradle to simplify code
 - [ ] Cover with unit tests
 - [ ] Cover with integration tests
-  - [ ] Check Docker client
-  - [ ] Check Bmuschko's Gradle plugin conflicts
-  - [ ] Check Spring Boot Gradle plugin conflicts
-  - [ ] Check Micronaut Gradle plugin conflicts
+    - [ ] Check Docker client
+    - [ ] Check Bmuschko's Gradle plugin conflicts
+    - [ ] Check Spring Boot Gradle plugin conflicts
+    - [ ] Check Micronaut Gradle plugin conflicts
 - [ ] Add java docs
 - [ ] Add docs (preferably using [docusaurus](https://docusaurus.io/))
 
