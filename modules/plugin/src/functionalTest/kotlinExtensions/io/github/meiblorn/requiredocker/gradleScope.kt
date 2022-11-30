@@ -5,6 +5,9 @@ import io.kotest.engine.spec.tempdir
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
 import java.io.File
+import java.util.*
+import javax.io.newDirectory
+import javax.util.load
 
 class GradleScope(var projectDir: File) {
 
@@ -26,9 +29,11 @@ class GradleScope(var projectDir: File) {
 
         return GradleRunner
             .create()
-            .let { if (debug) it.withDebug(true) else it }
+            .withDebug(debug)
             .withProjectDir(projectDir)
+            .withTestKitDir(projectDir.newDirectory(".testkit"))
             .withPluginClasspath()
+            .withJoCoCo()
             .forwardOutput()
             .withArguments(*mergedArguments)
             .let {
@@ -38,6 +43,28 @@ class GradleScope(var projectDir: File) {
                     it.build()
                 }
             }
+    }
+
+    /**
+     * There is no built-it support for code coverage in TestKit.
+     * Those tests run in separate JVM and configuration of JaCoCo plugin is not taken into account.
+     *
+     * @see <a href="https://github.com/koral--/jacoco-gradle-testkit-plugin/blob/master/README.md">Jacoco TestKit Plugin</a>
+     */
+    private fun GradleRunner.withJoCoCo(): GradleRunner {
+        val gradlePropertiesFile = File(projectDir, "gradle.properties")
+        val gradleProperties = Properties().load(gradlePropertiesFile)
+
+        val testkitGradleProperties = Properties().apply {
+            GradleScope::class.java
+                .classLoader
+                ?.getResourceAsStream("testkit-gradle.properties")
+                ?.use { load(it) }
+        }
+
+        gradleProperties.putAll(testkitGradleProperties)
+        gradleProperties.store(gradlePropertiesFile.outputStream(), null)
+        return this
     }
 }
 

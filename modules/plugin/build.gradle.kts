@@ -2,6 +2,8 @@ import com.diffplug.gradle.spotless.SpotlessExtension
 import com.github.jengelman.gradle.plugins.shadow.tasks.ConfigureShadowRelocation
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import org.unbrokendome.gradle.plugins.testsets.dsl.TestSetContainer
+import pl.droidsonroids.gradle.jacoco.testkit.GenerateJaCoCoTestKitProperties
+import pl.droidsonroids.gradle.jacoco.testkit.JacocoTestKitExtension
 
 plugins {
     `kotlin-dsl`
@@ -14,6 +16,7 @@ plugins {
     id("com.github.johnrengelman.shadow")
     id("com.gradle.plugin-publish")
     id("org.unbroken-dome.test-sets")
+    id("pl.droidsonroids.jacoco.testkit")
 }
 
 group = "io.github.meiblorn"
@@ -47,6 +50,42 @@ configure<TestSetContainer> {
     val unitTest by getting
     val functionalTest by creating {
         extendsFrom(unitTest)
+    }
+}
+
+configure<JacocoTestKitExtension> {
+    val functionalTestRuntimeOnly by configurations.getting
+    applyTo(functionalTestRuntimeOnly.name, tasks.named("functionalTest"))
+}
+
+tasks.withType<GenerateJaCoCoTestKitProperties> {
+    val execFilePath =
+        project.layout.buildDirectory
+            .dir("jacoco")
+            .map { it.file("gradleTestKit.exec") }
+            .map { it.asFile }
+            .map { it.path }
+
+    destinationFile.set(execFilePath)
+}
+
+afterEvaluate {
+    // NOTE: This is required to avoid printing of the following warning:
+    //
+    //     Execution optimizations have been disabled for task ':modules:plugin:functionalTest'
+    //     to ensure correctness due to the following reasons:
+
+    //     Gradle detected a problem with the following location: '/path/to/modules/plugin/build/testkit/test'.
+    //     Reason: Task ':modules:plugin:functionalTest' uses this output
+    //     of task ':modules:plugin:generateJacocoTestKitProperties' without declaring an
+    //     explicit or implicit dependency. This can lead to incorrect results being produced, depending on what
+    //     order the tasks are executed.
+    //
+    //     Please refer to https://docs.gradle.org/7.6/userguide/validation_problems.html#implicit_dependency
+    //     for more details about this problem.
+    //
+    val functionalTest by tasks.getting(Test::class) {
+        dependsOn(tasks.withType<GenerateJaCoCoTestKitProperties>())
     }
 }
 
